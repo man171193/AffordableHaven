@@ -329,7 +329,7 @@ export default function CreateReport() {
   // Create report mutation
   const createReportMutation = useMutation({
     mutationFn: async (data: CreateReportInput) => {
-      return apiRequest("POST", "/api/reports", data);
+      return apiRequest("/api/reports", "POST", data);
     },
     onSuccess: async (response) => {
       const reportData = await response.json();
