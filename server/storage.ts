@@ -76,18 +76,18 @@ export class DatabaseStorage implements IStorage {
   async createClient(client: InsertClient): Promise<Client> {
     const [newClient] = await db
       .insert(clients)
-      .values(client)
+      .values([client])
       .returning();
+    
     return newClient;
   }
 
   async updateClient(id: number, client: Partial<InsertClient>): Promise<Client | undefined> {
-    const [updatedClient] = await db
+    await db
       .update(clients)
       .set(client)
-      .where(eq(clients.id, id))
-      .returning();
-    return updatedClient;
+      .where(eq(clients.id, id));
+    return this.getClient(id);
   }
 
   async deleteClient(id: number): Promise<boolean> {
@@ -115,18 +115,18 @@ export class DatabaseStorage implements IStorage {
   async createQuality(quality: InsertQuality): Promise<Quality> {
     const [newQuality] = await db
       .insert(qualities)
-      .values(quality)
+      .values([quality])
       .returning();
+    
     return newQuality;
   }
 
   async updateQuality(id: number, quality: Partial<InsertQuality>): Promise<Quality | undefined> {
-    const [updatedQuality] = await db
+    await db
       .update(qualities)
       .set(quality)
-      .where(eq(qualities.id, id))
-      .returning();
-    return updatedQuality;
+      .where(eq(qualities.id, id));
+    return this.getQuality(id);
   }
 
   async deleteQuality(id: number): Promise<boolean> {
@@ -138,16 +138,31 @@ export class DatabaseStorage implements IStorage {
 
   // Report methods
   async getReports(): Promise<(Report & { clientName: string })[]> {
+    // Need to select columns explicitly for type safety
     const result = await db
       .select({
-        ...reports,
+        id: reports.id,
+        reportDate: reports.reportDate,
+        clientId: reports.clientId,
+        challanNo: reports.challanNo,
+        qualityName: reports.qualityName,
+        shadeNumber: reports.shadeNumber,
+        denier: reports.denier,
+        blend: reports.blend,
+        lotNumber: reports.lotNumber,
+        totalBags: reports.totalBags,
+        totalGrossWeight: reports.totalGrossWeight,
+        totalTareWeight: reports.totalTareWeight,
+        totalNetWeight: reports.totalNetWeight,
+        totalCones: reports.totalCones,
+        createdAt: reports.createdAt,
         clientName: clients.name
       })
       .from(reports)
       .innerJoin(clients, eq(reports.clientId, clients.id))
       .orderBy(desc(reports.reportDate));
     
-    return result;
+    return result as (Report & { clientName: string })[];
   }
 
   async getReport(id: number): Promise<Report | undefined> {
@@ -156,58 +171,98 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getReportWithItems(id: number): Promise<ReportWithItems | undefined> {
-    const report = await db
+    // Use explicit column selection for type safety
+    const reportResult = await db
       .select({
-        ...reports,
+        id: reports.id,
+        reportDate: reports.reportDate,
+        clientId: reports.clientId,
+        challanNo: reports.challanNo,
+        qualityName: reports.qualityName,
+        shadeNumber: reports.shadeNumber,
+        denier: reports.denier,
+        blend: reports.blend,
+        lotNumber: reports.lotNumber,
+        totalBags: reports.totalBags,
+        totalGrossWeight: reports.totalGrossWeight,
+        totalTareWeight: reports.totalTareWeight,
+        totalNetWeight: reports.totalNetWeight,
+        totalCones: reports.totalCones,
+        createdAt: reports.createdAt,
         clientName: clients.name,
         clientAddress: clients.address
       })
       .from(reports)
       .innerJoin(clients, eq(reports.clientId, clients.id))
-      .where(eq(reports.id, id))
-      .then(res => res[0]);
-
-    if (!report) return undefined;
+      .where(eq(reports.id, id));
+    
+    if (reportResult.length === 0) return undefined;
+    
+    const report = reportResult[0];
 
     const items = await db
-      .select()
+      .select({
+        id: reportItems.id,
+        reportId: reportItems.reportId,
+        bagNo: reportItems.bagNo,
+        grossWeight: reportItems.grossWeight,
+        tareWeight: reportItems.tareWeight,
+        netWeight: reportItems.netWeight,
+        cones: reportItems.cones
+      })
       .from(reportItems)
       .where(eq(reportItems.reportId, id))
       .orderBy(reportItems.bagNo);
 
-    return {
+    // Converting to the right format for the frontend with explicit typing
+    const reportData = {
       report: {
-        ...report,
+        id: report.id,
+        reportDate: report.reportDate.toString(),
+        clientId: report.clientId,
+        challanNo: report.challanNo,
+        qualityName: report.qualityName,
+        shadeNumber: report.shadeNumber,
+        denier: report.denier,
+        blend: report.blend,
+        lotNumber: report.lotNumber,
+        totalBags: report.totalBags,
         totalGrossWeight: Number(report.totalGrossWeight),
         totalTareWeight: Number(report.totalTareWeight),
-        totalNetWeight: Number(report.totalNetWeight)
+        totalNetWeight: Number(report.totalNetWeight),
+        totalCones: report.totalCones,
+        createdAt: report.createdAt.toString(),
+        clientName: report.clientName,
+        clientAddress: report.clientAddress
       },
       items: items.map(item => ({
-        ...item,
+        id: item.id,
+        reportId: item.reportId,
+        bagNo: item.bagNo,
         grossWeight: Number(item.grossWeight),
         tareWeight: Number(item.tareWeight),
-        netWeight: Number(item.netWeight)
+        netWeight: Number(item.netWeight),
+        cones: item.cones
       }))
     };
+    
+    return reportData as ReportWithItems;
   }
 
   async createReport(input: CreateReportInput): Promise<Report> {
-    // Neon HTTP driver doesn't support transactions, so we need to do this in separate operations
-    
-    // Create the report first
+    // Create the report first with returning to get the ID
     const [report] = await db
       .insert(reports)
-      .values(input.report)
+      .values([input.report])
       .returning();
-
+    
     // Create all report items
     if (input.items.length > 0) {
-      await db.insert(reportItems).values(
-        input.items.map(item => ({
-          ...item,
-          reportId: report.id
-        }))
-      );
+      const reportItemsData = input.items.map(item => ({
+        ...item,
+        reportId: report.id
+      }));
+      await db.insert(reportItems).values(reportItemsData);
     }
 
     return report;
@@ -236,9 +291,24 @@ export class DatabaseStorage implements IStorage {
     endDate?: Date,
     searchTerm?: string
   }): Promise<(Report & { clientName: string })[]> {
-    let query = db
+    // Use explicit column selection for type safety
+    let baseQuery = db
       .select({
-        ...reports,
+        id: reports.id,
+        reportDate: reports.reportDate,
+        clientId: reports.clientId,
+        challanNo: reports.challanNo,
+        qualityName: reports.qualityName,
+        shadeNumber: reports.shadeNumber,
+        denier: reports.denier,
+        blend: reports.blend,
+        lotNumber: reports.lotNumber,
+        totalBags: reports.totalBags,
+        totalGrossWeight: reports.totalGrossWeight,
+        totalTareWeight: reports.totalTareWeight,
+        totalNetWeight: reports.totalNetWeight,
+        totalCones: reports.totalCones,
+        createdAt: reports.createdAt,
         clientName: clients.name
       })
       .from(reports)
@@ -268,18 +338,19 @@ export class DatabaseStorage implements IStorage {
         sql`(
           ${like(clients.name, searchTerm)} OR
           ${like(reports.qualityName, searchTerm)} OR
-          CAST(${reports.challanNo} AS TEXT) LIKE ${searchTerm}
+          CAST(${reports.challanNo} AS CHAR) LIKE ${searchTerm}
         )`
       );
     }
 
+    let query = baseQuery;
     if (conditions.length > 0) {
       query = query.where(and(...conditions));
     }
 
     const result = await query.orderBy(desc(reports.reportDate));
     
-    return result;
+    return result as (Report & { clientName: string })[];
   }
 }
 
