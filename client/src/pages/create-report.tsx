@@ -178,9 +178,20 @@ export default function CreateReport() {
       if (quality) {
         headerForm.setValue("denier", quality.denier);
         headerForm.setValue("blend", quality.blend);
+        
+        // Reset bag number when quality changes
+        const itemsWithCurrentQuality = items.filter(item => item.qualityName === selectedQuality);
+        if (itemsWithCurrentQuality.length > 0) {
+          // If there are already items with this quality, use the next number
+          const maxBagNo = Math.max(...itemsWithCurrentQuality.map(item => item.bagNo));
+          itemForm.setValue("bagNo", maxBagNo + 1);
+        } else {
+          // Start from 1 for a new quality
+          itemForm.setValue("bagNo", 1);
+        }
       }
     }
-  }, [selectedQuality, qualities, headerForm]);
+  }, [selectedQuality, qualities, headerForm, items, itemForm]);
 
   // Get the next bag number
   useEffect(() => {
