@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Packing Material Report</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Google Fonts for a modern look -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- Bootstrap 5 CSS (CDN) -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+
+  <!-- SheetJS for Excel generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+  <style>
+    :root {
+      --primary-color: #4a90e2;
+      --secondary-color: #f5f7fa;
+      --accent-color: #d0021b;
+      --text-color: #333;
+      --card-bg: #ffffff;
+    }
+
+    body {
+      background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+      font-family: 'Poppins', sans-serif;
+      color: var(--text-color);
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      padding: 20px;
+      overflow-y: auto;
+      max-height: 100vh;
+    }
+
+    .heading {
+      text-align: center;
+      font-size: 2.5rem;
+      font-weight: 600;
+      color: var(--primary-color);
+      margin-top: 20px;
+      margin-bottom: 40px;
+    }
+
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      border-bottom: 2px solid var(--primary-color);
+      padding-bottom: 5px;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: none;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+      transition: transform 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+    }
+
+    .form-control {
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 50px;
+      padding: 10px 20px;
+      transition: background-color 0.2s;
+    }
+
+    .btn-primary {
+      background-color: var(--primary-color);
+      color: #fff;
+    }
+
+    .btn-success {
+      background-color: #28a745;
+      color: #fff;
+    }
+
+    .btn-warning {
+      background-color: #ffc107;
+      color: #fff;
+    }
+
+    .btn-secondary {
+      background-color: #6c757d;
+      color: #fff;
+    }
+
+    .table {
+      background: var(--card-bg);
+    }
+
+    .table thead th {
+      background-color: var(--primary-color);
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .table tbody tr:hover {
+      background-color: #f1f1f1;
+      transition: background-color 0.2s;
+    }
+
+    td[contenteditable="true"] {
+      background: #fff8dd;
+    }
+
+    .remove-btn {
+      cursor: pointer;
+      color: var(--accent-color);
+      font-weight: bold;
+    }
+
+    .subtotal-row, .grandtotal-row {
+      background-color: #f0f0f0;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h2 class="heading">Packing Material Report</h2>
+
+    <!-- Finished Yarn Details -->
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title section-title">Finished Yarn Details</h5>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label for="reportDate" class="form-label">Date:</label>
+            <input type="date" id="reportDate" class="form-control" required />
+          </div>
+          <div class="col-md-6">
+            <label for="clientName" class="form-label">Client Name:</label>
+            <input type="text" id="clientName" class="form-control" placeholder="e.g. MCT" list="clientNamesList" required />
+            <datalist id="clientNamesList">
+              <!-- Datalist options remain unchanged -->
+              <option value="3AT INDIA INC"></option>
+              <option value="ABDUL SAMAD SHABAN"></option>
+              <option value="ANOKHI CREATION"></option>
+              <option value="ASADEEP FURNISHING PVT LTD"></option>
+              <option value="BEEKALENE FABRICS PVT LTD"></option>
+              <option value="CRUSH CREATION"></option>
+              <option value="D' DECOR EXPORTS PVT LTD"></option>
+              <option value="DHAGA UDYOG"></option>
+              <option value="DICITEX FURNISHING PVT LTD"></option>
+              <option value="EASTERN SILK INDUSTRIES LIMITED"></option>
+              <option value="FAZE THREE LTD"></option>
+              <option value="FIFTH SEASONS DECORE PVT LTD"></option>
+              <option value="GENERAL POLYTEX PVT LTD"></option>
+              <option value="G M SYNTEX PVT LTD"></option>
+              <option value="G M WEAVING MILLS"></option>
+              <option value="GOPINATH TEXTILE"></option>
+              <option value="GOVARDHAN OVERSEAS PVT LTD"></option>
+              <option value="HARIA TEXTILES"></option>
+              <option value="HARIT FABTEX (INDIA) PVT LTD"></option>
+              <option value="HIMALAYA COTTON YARN LTD (DR)"></option>
+              <option value="HOMEC TISSUS"></option>
+              <option value="HOME FABRICS TEXTIL LLP"></option>
+              <option value="ISHA FASHIONS PVT LTD"></option>
+              <option value="JARIWALA YARN TRADERS"></option>
+              <option value="J V TRADING COMPANY"></option>
+              <option value="JYOT TRADING"></option>
+              <option value="KHUSHBU YARNS"></option>
+              <option value="KUSHWAHA SAVI"></option>
+              <option value="LAKSHMI TEXTILE MILLS"></option>
+              <option value="MAA JEEN TEXTILES"></option>
+              <option value="MAHAKAL AGENCY"></option>
+              <option value="MAMTA RAYONS PVT LTD"></option>
+              <option value="NARAYANI ENTERPRISES"></option>
+              <option value="NITANTA YARN CORPORATION"></option>
+              <option value="ORBIT EXPORT LIMITED"></option>
+              <option value="P K TEXTILES LTD"></option>
+              <option value="PNR INDUSTRIES LTD"></option>
+              <option value="P.P YARN AGENCIES"></option>
+              <option value="RADHABALLABH SILK MILLS PVT LTD"></option>
+              <option value="RADHE FIBRES"></option>
+              <option value="RAVI EXPORT LTD"></option>
+              <option value="SAFFRON"></option>
+              <option value="SHREE BHAGWATI TEXTILE MILLS"></option>
+              <option value="SHREE KRISHNA MARKETING"></option>
+              <option value="SHRI DAMODAR YARN MFG PVT LTD"></option>
+              <option value="SIMRAN G DECOR"></option>
+              <option value="SIYARAM SILK MILLS LIMITED"></option>
+              <option value="SIYARAM SILK MILLS LIMITED ( DELIVERY )"></option>
+              <option value="S K WEAVING PVT LTD"></option>
+              <option value="SUNGRACE SYNTEX PVT LTD"></option>
+              <option value="SUNRISE SPINNERS"></option>
+              <option value="SUTLEJ TEXTILE AND INDUSTRIES LTD"></option>
+              <option value="S Z TEX"></option>
+              <option value="TEXPERTS INDIA PVT LTD"></option>
+              <option value="T N FABRICS"></option>
+              <option value="VAIBHAV TEXTILE"></option>
+              <option value="VARNI TEXTILE"></option>
+              <option value="VIDDHI CREATION"></option>
+              <option value="VRIJESH NATURAL FIBRE & FABRICS ( INDIA ) PVT LTD"></option>
+              <option value="V SURENDER"></option>
+              <option value="WAMPUM SYNTEX PVT LTD"></option>
+              <option value="WEBBRAI"></option>
+              <option value="WIN STAR INDUSTRIES PVT LTD"></option>
+              <option value="ZENITH TEXTILES"></option>
+            </datalist>
+          </div>
+          <div class="col-md-6">
+            <label for="challanNo" class="form-label">Challan No:</label>
+            <input type="number" id="challanNo" class="form-control" placeholder="e.g. 528" inputmode="numeric" pattern="[0-9]*" required />
+          </div>
+          <div class="col-md-6">
+            <label for="qualityName" class="form-label">Quality Name:</label>
+            <input type="text" id="qualityName" class="form-control" placeholder="e.g. Rct 277" required />
+          </div>
+          <div class="col-md-6">
+            <label for="shadeNumber" class="form-label">Shade Number:</label>
+            <input type="text" id="shadeNumber" class="form-control" placeholder="e.g. UV refuge" />
+          </div>
+          <div class="col-md-6">
+            <label for="denier" class="form-label">Denier:</label>
+            <input type="number" id="denier" class="form-control" placeholder="e.g. 200" inputmode="numeric" pattern="[0-9]*" required />
+          </div>
+          <div class="col-md-6">
+            <label for="blend" class="form-label">Blend:</label>
+            <input type="text" id="blend" class="form-control" placeholder="e.g. 2000" required />
+          </div>
+          <div class="col-md-6">
+            <label for="lotNumber" class="form-label">Lot Number:</label>
+            <input type="number" id="lotNumber" class="form-control" placeholder="e.g. 58" inputmode="numeric" pattern="[0-9]*" required />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Item Details -->
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title section-title">Item Details</h5>
+        <div class="row g-3">
+          <div class="col-12 col-md-6">
+            <label for="bagNo" class="form-label">Bag No:</label>
+            <input type="number" id="bagNo" class="form-control" placeholder="e.g. 1" inputmode="numeric" pattern="[0-9]*" required />
+          </div>
+          <div class="col-6 col-md-4">
+            <label for="grossWeight" class="form-label">Gross Weight:</label>
+            <input type="number" id="grossWeight" class="form-control" placeholder="e.g. 18.4" inputmode="decimal" pattern="[0-9]*" required />
+          </div>
+          <div class="col-6 col-md-4">
+            <label for="tareWeight" class="form-label">Tare Weight:</label>
+            <input type="number" id="tareWeight" class="form-control" placeholder="e.g. 3" inputmode="decimal" pattern="[0-9]*" required />
+          </div>
+          <div class="col-6 col-md-4">
+            <label for="netWeight" class="form-label">Net Weight:</label>
+            <input type="number" id="netWeight" class="form-control" placeholder="0" inputmode="decimal" pattern="[0-9]*" readonly />
+          </div>
+          <div class="col-6 col-md-4">
+            <label for="cones" class="form-label">No. of Cones:</label>
+            <input type="number" id="cones" class="form-control" placeholder="e.g. 10" inputmode="numeric" pattern="[0-9]*" required />
+          </div>
+        </div>
+        <div class="mt-3">
+          <button id="addItem" class="btn btn-primary w-100">Add Item</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Report Section (hidden initially) -->
+    <div class="card" id="reportSection" style="display: none;">
+      <div class="card-body">
+        <h5 class="card-title section-title">Current Report (with Subtotals)</h5>
+        <div class="table-responsive">
+          <table class="table table-bordered table-striped table-hover align-middle" id="reportTable">
+            <thead>
+              <tr>
+                <th>Sr. No.</th>
+                <th>Bag No.</th>
+                <th>Quality</th>
+                <th>Denier</th>
+                <th>Blend</th>
+                <th>Lot Number</th>
+                <th>Shade</th>
+                <th>Gross Wt</th>
+                <th>Tare Wt</th>
+                <th>Net Wt</th>
+                <th>Cones</th>
+                <th>Remove</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="d-grid gap-2 mt-3">
+          <button id="finishReport" class="btn btn-success">Finish Report</button>
+          <button id="shareReport" class="btn btn-warning" style="display: none;">Share Report</button>
+          <button id="createNew" class="btn btn-secondary" style="display: none;">Create New Report</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap 5 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // All JavaScript remains unchanged (functionality preserved)
+    let srNo = 1;
+    let reportData = [];
+
+    function saveToSessionStorage() {
+      sessionStorage.setItem('packingData', JSON.stringify({ srNo, reportData }));
+    }
+
+    const grossWeightInput = document.getElementById('grossWeight');
+    const tareWeightInput  = document.getElementById('tareWeight');
+    const netWeightInput   = document.getElementById('netWeight');
+
+    function updateNetWeight() {
+      const gw = parseFloat(grossWeightInput.value) || 0;
+      const tw = parseFloat(tareWeightInput.value) || 0;
+      netWeightInput.value = (gw - tw).toFixed(3);
+    }
+    grossWeightInput.addEventListener('input', updateNetWeight);
+    tareWeightInput.addEventListener('input', updateNetWeight);
+
+    const inputOrder = ["reportDate", "clientName", "challanNo", "qualityName", "shadeNumber", "denier", "blend", "lotNumber", "bagNo", "grossWeight", "tareWeight", "cones"];
+    inputOrder.forEach((id, index) => {
+      const input = document.getElementById(id);
+      if(input) {
+        input.addEventListener('keydown', function(e) {
+          if(e.key === "Enter") {
+            e.preventDefault();
+            if(index < inputOrder.length - 1) {
+              document.getElementById(inputOrder[index+1]).focus();
+            }
+          }
+        });
+      }
+    });
+
+    function groupReportData(data) {
+      if (!data || !data.length) return [];
+      const groups = [];
+      let currentGroup = [];
+      let lastQ = data[0].qualityName;
+      let lastL = data[0].lotNumber;
+
+      for (let i = 0; i < data.length; i++) {
+        const r = data[i];
+        if (i > 0 && (r.qualityName !== lastQ || r.lotNumber !== lastL)) {
+          groups.push(currentGroup);
+          currentGroup = [];
+        }
+        currentGroup.push(r);
+        lastQ = r.qualityName;
+        lastL = r.lotNumber;
+      }
+      if (currentGroup.length) groups.push(currentGroup);
+      return groups;
+    }
+
+    function renderReportTable() {
+      const tbody = document.querySelector('#reportTable tbody');
+      tbody.innerHTML = '';
+
+      let groups = groupReportData(reportData);
+      let reversedGroups = groups.slice().reverse().map(group => group.slice().reverse());
+
+      let grandGross = 0, grandTare = 0, grandNet = 0, grandCones = 0;
+
+      for (let g = 0; g < reversedGroups.length; g++) {
+        const group = reversedGroups[g];
+        let groupGross = 0, groupTare = 0, groupNet = 0, groupCones = 0;
+
+        for (let i = 0; i < group.length; i++) {
+          const r = group[i];
+          const row = document.createElement('tr');
+
+          const gw = parseFloat(r.grossWeight) || 0;
+          const tw = parseFloat(r.tareWeight) || 0;
+          const nw = parseFloat(r.netWeight) || 0;
+          const cn = parseInt(r.cones) || 0;
+
+          groupGross += gw;
+          groupTare  += tw;
+          groupNet   += nw;
+          groupCones += cn;
+
+          grandGross += gw;
+          grandTare  += tw;
+          grandNet   += nw;
+          grandCones += cn;
+
+          let qVal = '', dVal = '', bVal = '', lVal = '', sVal = '';
+          if (i === 0) {
+            qVal = r.qualityName;
+            dVal = r.denier;
+            bVal = r.blend;
+            lVal = r.lotNumber;
+            sVal = r.shadeNumber;
+          }
+
+          const cells = [
+            r.srNo,
+            r.bagNo,
+            qVal,
+            dVal,
+            bVal,
+            lVal,
+            sVal,
+            r.grossWeight,
+            r.tareWeight,
+            r.netWeight,
+            r.cones
+          ];
+
+          cells.forEach((val, index) => {
+            const c = document.createElement('td');
+            c.textContent = val || '';
+            if (index !== 0) {
+              c.contentEditable = 'true';
+              c.addEventListener('blur', () => {
+                switch(index) {
+                  case 1: r.bagNo        = c.textContent; break;
+                  case 2: r.qualityName  = c.textContent; break;
+                  case 3: r.denier       = c.textContent; break;
+                  case 4: r.blend        = c.textContent; break;
+                  case 5: r.lotNumber    = c.textContent; break;
+                  case 6: r.shadeNumber  = c.textContent; break;
+                  case 7: r.grossWeight  = c.textContent; break;
+                  case 8: r.tareWeight   = c.textContent; break;
+                  case 9: r.netWeight    = c.textContent; break;
+                  case 10: r.cones       = c.textContent; break;
+                }
+                renderReportTable();
+                recalcUITotals();
+                saveToSessionStorage();
+              });
+            }
+            row.appendChild(c);
+          });
+
+          const rmTd = document.createElement('td');
+          rmTd.innerHTML = `<span class="remove-btn">X</span>`;
+          rmTd.addEventListener('click', () => {
+            const idx = reportData.indexOf(r);
+            if (idx !== -1) {
+              reportData.splice(idx, 1);
+            }
+            renderReportTable();
+            recalcUITotals();
+            if (!reportData.length) {
+              reportSection.style.display = 'none';
+            }
+            saveToSessionStorage();
+          });
+          row.appendChild(rmTd);
+          tbody.appendChild(row);
+        }
+        const blankRow = document.createElement('tr');
+        blankRow.innerHTML = `<td colspan="12" style="height:5px;"></td>`;
+        tbody.appendChild(blankRow);
+
+        const subtotalRow = document.createElement('tr');
+        subtotalRow.classList.add('subtotal-row');
+        subtotalRow.innerHTML = `
+          <td colspan="7">SUBTOTAL</td>
+          <td>${groupGross.toFixed(3)}</td>
+          <td>${groupTare.toFixed(3)}</td>
+          <td>${groupNet.toFixed(3)}</td>
+          <td>${groupCones}</td>
+          <td></td>
+        `;
+        tbody.appendChild(subtotalRow);
+
+        const blankRow2 = document.createElement('tr');
+        blankRow2.innerHTML = `<td colspan="12" style="height:5px;"></td>`;
+        tbody.appendChild(blankRow2);
+      }
+
+      if (reversedGroups.length > 1) {
+        const grandRow = document.createElement('tr');
+        grandRow.classList.add('grandtotal-row');
+        grandRow.innerHTML = `
+          <td colspan="7">GRAND TOTAL</td>
+          <td>${grandGross.toFixed(3)}</td>
+          <td>${grandTare.toFixed(3)}</td>
+          <td>${grandNet.toFixed(3)}</td>
+          <td>${grandCones}</td>
+          <td></td>
+        `;
+        tbody.appendChild(grandRow);
+      }
+
+      totalGrossUI.textContent = grandGross.toFixed(3);
+      totalTareUI.textContent  = grandTare.toFixed(3);
+      totalNetUI.textContent   = grandNet.toFixed(3);
+    }
+
+    function recalcUITotals() {
+      let sumGross = 0, sumTare = 0, sumNet = 0;
+      for (const r of reportData) {
+        sumGross += parseFloat(r.grossWeight) || 0;
+        sumTare  += parseFloat(r.tareWeight)  || 0;
+        sumNet   += parseFloat(r.netWeight)   || 0;
+      }
+      totalGrossUI.textContent = sumGross.toFixed(3);
+      totalTareUI.textContent  = sumTare.toFixed(3);
+      totalNetUI.textContent   = sumNet.toFixed(3);
+    }
+
+    const totalGrossUI = document.getElementById('totalGross');
+    const totalTareUI  = document.getElementById('totalTare');
+    const totalNetUI   = document.getElementById('totalNet');
+
+    const addItemBtn      = document.getElementById('addItem');
+    const finishReportBtn = document.getElementById('finishReport');
+    const shareReportBtn  = document.getElementById('shareReport');
+    const createNewBtn    = document.getElementById('createNew');
+    const reportSection   = document.getElementById('reportSection');
+
+    addItemBtn.addEventListener('click', () => {
+      const rd   = document.getElementById('reportDate').value;
+      const clnt = document.getElementById('clientName').value;
+      const chNo = document.getElementById('challanNo').value;
+      const qn   = document.getElementById('qualityName').value;
+      const sh   = document.getElementById('shadeNumber').value;
+      const dn   = document.getElementById('denier').value;
+      const bl   = document.getElementById('blend').value;
+      const lot  = document.getElementById('lotNumber').value;
+
+      if (!rd || !clnt || !chNo || !qn || !dn || !bl || !lot) {
+        alert('Please fill all required Finished Yarn fields.');
+        return;
+      }
+      const bagVal   = document.getElementById('bagNo').value;
+      const gwVal    = document.getElementById('grossWeight').value;
+      const twVal    = document.getElementById('tareWeight').value;
+      const netVal   = document.getElementById('netWeight').value;
+      const conesVal = document.getElementById('cones').value;
+      if (!bagVal || !conesVal) {
+        alert('Please fill all Item Details fields.');
+        return;
+      }
+
+      const gw = parseFloat(gwVal) || 0;
+      const tw = parseFloat(twVal) || 0;
+      const nw = parseFloat(netVal) || 0;
+      const c  = parseInt(conesVal, 10) || 0;
+
+      const record = {
+        srNo         : srNo,
+        bagNo        : bagVal,
+        qualityName  : qn,
+        denier       : dn,
+        blend        : bl,
+        lotNumber    : lot,
+        shadeNumber  : sh,
+        grossWeight  : gw.toFixed(3),
+        tareWeight   : tw.toFixed(3),
+        netWeight    : nw.toFixed(3),
+        cones        : c.toString(),
+        date         : rd,
+        clientName   : clnt,
+        challanNo    : chNo
+      };
+      reportData.push(record);
+      srNo++;
+
+      saveToSessionStorage();
+
+      const bagNoInput = document.getElementById('bagNo');
+      let currentBagNo = parseInt(bagNoInput.value) || 1;
+      bagNoInput.value = currentBagNo + 1;
+      document.getElementById('grossWeight').value = '';
+      document.getElementById('netWeight').value = '';
+
+      if (reportData.length > 0) {
+        reportSection.style.display = 'block';
+      }
+      renderReportTable();
+    });
+
+    finishReportBtn.addEventListener('click', () => {
+      if (!reportData.length) {
+        alert('Please add at least one item before finishing the report.');
+        return;
+      }
+      const { fileName, blob } = generateExcel();
+      sendEmailReport(fileName, blob);
+      createNewBtn.style.display = 'block';
+    });
+
+    function generateExcel() {
+      const first = reportData[0];
+      const safeClient = (first.clientName || 'Client').replace(/\s+/g, '');
+      const safeDate   = (first.date || '0000-00-00').replaceAll('-', '');
+      const fileName   = `${safeClient}_PackingReport_${safeDate}.xlsx`;
+
+      const groups = groupReportData(reportData);
+      let wsData = [];
+      wsData.push(["MYCITIUS TEX PRIVATE LIMITED"]);
+      wsData.push(["DELIVERY CHALLAN CUM PACKING LIST"]);
+      wsData.push([`Date: ${first.date}   Challan No: ${first.challanNo}`]);
+      wsData.push([`Client: ${first.clientName}`]);
+      wsData.push([]);
+      wsData.push([
+        "Sr. No.","Bag No.","Quality","Denier","Blend","Lot Number","Shade",
+        "Gross Weight","Tare Weight","Net Weight","Cones"
+      ]);
+
+      let grandG = 0, grandT = 0, grandN = 0, grandC = 0;
+
+      for (let g = 0; g < groups.length; g++) {
+        const group = groups[g];
+        let groupG = 0, groupT = 0, groupN = 0, groupC = 0;
+
+        for (let i = 0; i < group.length; i++) {
+          const r = group[i];
+          const gw = parseFloat(r.grossWeight) || 0;
+          const tw = parseFloat(r.tareWeight)  || 0;
+          const nw = parseFloat(r.netWeight)   || 0;
+          const cn = parseInt(r.cones, 10)      || 0;
+
+          groupG += gw;  groupT += tw;
+          groupN += nw;  groupC += cn;
+
+          grandG += gw;  grandT += tw;
+          grandN += nw;  grandC += cn;
+
+          let qVal = "", dVal = "", bVal = "", lVal = "", sVal = "";
+          if (i === 0) {
+            qVal = r.qualityName;
+            dVal = r.denier;
+            bVal = r.blend;
+            lVal = r.lotNumber;
+            sVal = r.shadeNumber;
+          }
+          wsData.push([
+            r.srNo, r.bagNo, qVal, dVal, bVal, lVal, sVal,
+            gw, tw, nw, cn
+          ]);
+        }
+        wsData.push([]);
+        wsData.push([
+          "SUBTOTAL","","","","","", "",
+          groupG.toFixed(3),
+          groupT.toFixed(3),
+          groupN.toFixed(3),
+          groupC
+        ]);
+        wsData.push([]);
+      }
+
+      if (groups.length > 1) {
+        wsData.push([]);
+        wsData.push([
+          "GRAND TOTAL","","","","","", "",
+          grandG.toFixed(3),
+          grandT.toFixed(3),
+          grandN.toFixed(3),
+          grandC
+        ]);
+        wsData.push([]);
+      }
+
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      const range = XLSX.utils.decode_range(ws['!ref']);
+      for (let R = 0; R <= range.e.r; R++) {
+        for (let C of [7,8,9]) {
+          const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
+          if (ws[cellRef]) {
+            ws[cellRef].z = "0.000";
+          }
+        }
+        const conesRef = XLSX.utils.encode_cell({ r: R, c: 10 });
+        if (ws[conesRef]) {
+          ws[conesRef].z = "0";
+        }
+      }
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Report");
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'binary' });
+      const blob = new Blob([s2ab(wbout)], { type: 'application/octet-stream' });
+      const url  = URL.createObjectURL(blob);
+
+      const oldLink = reportSection.querySelector('a[download]');
+      if (oldLink) oldLink.remove();
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      a.textContent = 'Download Excel File';
+      a.classList.add('btn', 'btn-outline-primary', 'mt-2', 'w-100');
+      reportSection.appendChild(a);
+
+      if (navigator.canShare && navigator.canShare({ files: [new File([blob], fileName, { type: 'application/octet-stream' })] })) {
+        shareReportBtn.style.display = 'block';
+      }
+      return { fileName, blob };
+    }
+
+    function s2ab(s) {
+      const buf = new ArrayBuffer(s.length);
+      const view = new Uint8Array(buf);
+      for (let i = 0; i < s.length; i++) {
+        view[i] = s.charCodeAt(i) & 0xff;
+      }
+      return buf;
+    }
+
+    shareReportBtn.addEventListener('click', async () => {
+      if (!reportData.length) return;
+      const first = reportData[0];
+      const safeClient = (first.clientName || 'Client').replace(/\s+/g, '');
+      const safeDate   = (first.date || '0000-00-00').replaceAll('-', '');
+      const fileName   = `${safeClient}_PackingReport_${safeDate}.xlsx`;
+
+      const blob = buildExcelBlob();
+      const fileForShare = new File([blob], fileName, { type: 'application/octet-stream' });
+      try {
+        await navigator.share({
+          title: 'Packing Material Report',
+          files: [fileForShare]
+        });
+      } catch (err) {
+        alert('Sharing failed: ' + err);
+      }
+    });
+
+    function buildExcelBlob() {
+      const groups = groupReportData(reportData);
+      let wsData = [];
+      if (reportData.length) {
+        const f = reportData[0];
+        wsData.push(["MYCITIUS TEX PRIVATE LIMITED"]);
+        wsData.push(["DELIVERY CHALLAN CUM PACKING LIST"]);
+        wsData.push([`Date: ${f.date}   Challan No: ${f.challanNo}`]);
+        wsData.push([`Client: ${f.clientName}`]);
+        wsData.push([]);
+      }
+      wsData.push(["Sr. No.","Bag No.","Quality","Denier","Blend","Lot Number","Shade","Gross Wt","Tare Wt","Net Wt","Cones"]);
+
+      let grandG = 0, grandT = 0, grandN = 0, grandC = 0;
+      for (let g = 0; g < groups.length; g++){
+        let gG = 0, gT = 0, gN = 0, gC = 0;
+        const group = groups[g];
+        for (let i = 0; i < group.length; i++){
+          const r = group[i];
+          const gw = parseFloat(r.grossWeight) || 0, tw = parseFloat(r.tareWeight) || 0, nw = parseFloat(r.netWeight) || 0, cn = parseInt(r.cones) || 0;
+          gG += gw; gT += tw; gN += nw; gC += cn;
+          grandG += gw; grandT += tw; grandN += nw; grandC += cn;
+
+          let qVal = "", dVal = "", bVal = "", lVal = "", sVal = "";
+          if (i === 0){
+            qVal = r.qualityName; dVal = r.denier; bVal = r.blend; lVal = r.lotNumber; sVal = r.shadeNumber;
+          }
+          wsData.push([
+            r.srNo, r.bagNo, qVal, dVal, bVal, lVal, sVal,
+            gw, tw, nw, cn
+          ]);
+        }
+        wsData.push([]);
+        wsData.push(["SUBTOTAL","","","","","", "", gG.toFixed(3), gT.toFixed(3), gN.toFixed(3), gC]);
+        wsData.push([]);
+      }
+      if (groups.length > 1){
+        wsData.push([]);
+        wsData.push(["GRAND TOTAL","","","","","", "", grandG.toFixed(3), grandT.toFixed(3), grandN.toFixed(3), grandC]);
+        wsData.push([]);
+      }
+
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      const range = XLSX.utils.decode_range(ws['!ref']);
+      for (let R = 0; R <= range.e.r; R++){
+        for (let C of [7,8,9]) {
+          const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
+          if(ws[cellRef]) ws[cellRef].z = "0.000";
+        }
+        const conesRef = XLSX.utils.encode_cell({ r: R, c: 10 });
+        if (ws[conesRef]) ws[conesRef].z = "0";
+      }
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Report");
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'binary' });
+      return new Blob([s2ab(wbout)], { type: 'application/octet-stream' });
+    }
+
+    createNewBtn.addEventListener('click', () => {
+      srNo = 1;
+      reportData = [];
+      document.querySelector('#reportTable tbody').innerHTML = "";
+      reportSection.style.display = 'none';
+
+      totalGrossUI.textContent = "0.000";
+      totalTareUI.textContent  = "0.000";
+      totalNetUI.textContent   = "0.000";
+
+      document.getElementById('reportDate').value   = '';
+      document.getElementById('clientName').value     = '';
+      document.getElementById('challanNo').value      = '';
+      document.getElementById('qualityName').value    = '';
+      document.getElementById('shadeNumber').value    = '';
+      document.getElementById('denier').value         = '';
+      document.getElementById('blend').value          = '';
+      document.getElementById('lotNumber').value      = '';
+
+      document.getElementById('bagNo').value          = '';
+      document.getElementById('grossWeight').value    = '';
+      document.getElementById('netWeight').value      = '';
+
+      shareReportBtn.style.display = 'none';
+      createNewBtn.style.display   = 'none';
+
+      sessionStorage.removeItem('packingData');
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const storedDataJSON = sessionStorage.getItem('packingData');
+      if (storedDataJSON) {
+        try {
+          const { srNo: storedSrNo, reportData: storedReport } = JSON.parse(storedDataJSON);
+          if (storedSrNo) srNo = storedSrNo;
+          if (storedReport) reportData = storedReport;
+
+          if (reportData.length > 0) {
+            reportSection.style.display = 'block';
+            renderReportTable();
+          }
+        } catch (err) {
+          console.error("Error parsing sessionStorage data:", err);
+        }
+      }
+    });
+  </script>
+</body>
+</html>
