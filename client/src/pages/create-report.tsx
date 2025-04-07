@@ -19,8 +19,10 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Client, Quality, ReportWithItems, CreateReportInput } from "@shared/schema";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { FileSpreadsheet, File, Trash2, PlusCircle } from "lucide-react";
+import { FileSpreadsheet, File, Trash2, PlusCircle, UserPlus, Tag, Plus } from "lucide-react";
 import { generateExcel, generatePDF } from "@/lib/exporters";
+import { AddClientDialog } from "@/components/add-client-dialog";
+import { AddQualityDialog } from "@/components/add-quality-dialog";
 
 // Form schema for adding an item
 const addItemSchema = z.object({
@@ -82,6 +84,8 @@ export default function CreateReport() {
   }>({});
   const [reportFinished, setReportFinished] = useState(false);
   const [currentReport, setCurrentReport] = useState<ReportWithItems | null>(null);
+  const [clientDialogOpen, setClientDialogOpen] = useState(false);
+  const [qualityDialogOpen, setQualityDialogOpen] = useState(false);
 
   // Load data from session storage if available
   useEffect(() => {
@@ -518,7 +522,19 @@ export default function CreateReport() {
 
                 {/* Client name with search */}
                 <div>
-                  <Label htmlFor="clientId">Client Name</Label>
+                  <div className="flex justify-between items-center mb-1">
+                    <Label htmlFor="clientId">Client Name</Label>
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 px-2 text-muted-foreground"
+                      onClick={() => setClientDialogOpen(true)}
+                    >
+                      <UserPlus className="h-4 w-4 mr-1" />
+                      Add New
+                    </Button>
+                  </div>
                   <Controller
                     control={headerForm.control}
                     name="clientId"
@@ -586,7 +602,19 @@ export default function CreateReport() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {/* Quality Name with auto-population */}
                 <div>
-                  <Label htmlFor="qualityName">Quality Name</Label>
+                  <div className="flex justify-between items-center mb-1">
+                    <Label htmlFor="qualityName">Quality Name</Label>
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 px-2 text-muted-foreground"
+                      onClick={() => setQualityDialogOpen(true)}
+                    >
+                      <Tag className="h-4 w-4 mr-1" />
+                      Add New
+                    </Button>
+                  </div>
                   <Controller
                     control={headerForm.control}
                     name="qualityName"
@@ -684,7 +712,6 @@ export default function CreateReport() {
                   <Input
                     id="bagNo"
                     type="number"
-                    readOnly
                     {...itemForm.register("bagNo")}
                   />
                   {itemForm.formState.errors.bagNo && (
@@ -892,6 +919,30 @@ export default function CreateReport() {
           </div>
         </Card>
       )}
+
+      {/* Add Client Dialog */}
+      <AddClientDialog 
+        open={clientDialogOpen} 
+        onOpenChange={setClientDialogOpen} 
+        onClientAdded={() => {
+          toast({
+            title: "Client Added",
+            description: "The new client has been added successfully"
+          });
+        }}
+      />
+
+      {/* Add Quality Dialog */}
+      <AddQualityDialog 
+        open={qualityDialogOpen} 
+        onOpenChange={setQualityDialogOpen} 
+        onQualityAdded={() => {
+          toast({
+            title: "Quality Added",
+            description: "The new quality has been added successfully"
+          });
+        }}
+      />
     </div>
   );
 }

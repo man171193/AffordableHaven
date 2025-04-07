@@ -14,13 +14,23 @@ export async function generateExcel(report: ReportWithItems) {
     // Format the data for Excel
     const reportDate = format(new Date(report.report.reportDate), "dd/MM/yyyy");
     
-    // Create header information
-    const headerData = [
-      ["Packing Material Report"],
+    // Create company header information
+    const companyData = [
+      ["MYCITIUS TEX PRIVATE LIMITED"],
+      ["FACTORY ADDRESS: BATIA TOLL PLAZA. PLOT NO B-14/27. HOJIWALA INDUSTRIAL ESTATE ROAD NO 13., SACHIN SURAT. GUJRAT. 394230"],
+      ["GST NO: 24AANCM4112H1ZO"],
       [""],
-      ["Date:", reportDate],
+      ["DELIVERY CHALLAN CUM PACKING LIST"],
+      [""]
+    ];
+    
+    // Create shipping information
+    const shippingData = [
+      ["Shipping Address:"],
       ["Client Name:", report.report.clientName],
       ["Client Address:", report.report.clientAddress],
+      [""],
+      ["Date:", reportDate],
       ["Challan No:", report.report.challanNo.toString()],
       ["Quality Name:", report.report.qualityName],
       ["Shade Number:", report.report.shadeNumber || ""],
@@ -36,35 +46,36 @@ export async function generateExcel(report: ReportWithItems) {
     const columnHeaders = [
       "Sr. No.",
       "Bag No.",
-      "Gross Weight",
-      "Tare Weight",
-      "Net Weight",
+      "Gross Weight (kg)",
+      "Tare Weight (kg)",
+      "Net Weight (kg)",
       "Cones"
     ];
     
-    // Create the rows for each item
+    // Create the rows for each item with 2 decimal places
     const itemRows = report.items.map((item, index) => [
       index + 1,
       item.bagNo,
-      item.grossWeight,
-      item.tareWeight,
-      item.netWeight,
+      Number(item.grossWeight).toFixed(2),
+      Number(item.tareWeight).toFixed(2),
+      Number(item.netWeight).toFixed(2),
       item.cones
     ]);
     
-    // Add totals row
+    // Add totals row with 2 decimal places
     const totalsRow = [
       "Total",
       "",
-      report.report.totalGrossWeight,
-      report.report.totalTareWeight,
-      report.report.totalNetWeight,
+      Number(report.report.totalGrossWeight).toFixed(2),
+      Number(report.report.totalTareWeight).toFixed(2),
+      Number(report.report.totalNetWeight).toFixed(2),
       report.report.totalCones
     ];
     
     // Combine all data
     const excelData = [
-      ...headerData,
+      ...companyData,
+      ...shippingData,
       columnHeaders,
       ...itemRows,
       [],
@@ -79,19 +90,55 @@ export async function generateExcel(report: ReportWithItems) {
     const colWidths = [
       { wch: 10 }, // Sr. No.
       { wch: 10 }, // Bag No.
-      { wch: 15 }, // Gross Weight
-      { wch: 15 }, // Tare Weight
-      { wch: 15 }, // Net Weight
+      { wch: 18 }, // Gross Weight
+      { wch: 18 }, // Tare Weight
+      { wch: 18 }, // Net Weight
       { wch: 10 }  // Cones
     ];
     
     ws['!cols'] = colWidths;
     
+    // Apply styles - bold headers and title
+    // Company name and delivery challan title
+    const range = XLSX.utils.decode_range(ws['!ref'] || "A1");
+    const boldCells = ["A1", "A5"]; // Company name and DELIVERY CHALLAN title
+    const centerCells = ["A1", "A2", "A3", "A5"];
+    
+    // Bold column headers
+    const headerRowIndex = companyData.length + shippingData.length;
+    for (let i = 0; i <= range.e.c; i++) {
+      const cellRef = XLSX.utils.encode_cell({ r: headerRowIndex, c: i });
+      boldCells.push(cellRef);
+    }
+    
+    // Apply bold styling
+    boldCells.forEach(cellRef => {
+      if (!ws[cellRef]) ws[cellRef] = { v: '', t: 's' };
+      ws[cellRef].s = { font: { bold: true } };
+    });
+    
+    // Apply center alignment
+    centerCells.forEach(cellRef => {
+      if (!ws[cellRef]) ws[cellRef] = { v: '', t: 's' };
+      ws[cellRef].s = { 
+        ...ws[cellRef].s,
+        alignment: { horizontal: 'center' }
+      };
+    });
+    
+    // Apply bold to totals row
+    const totalRowIndex = headerRowIndex + itemRows.length + 2;
+    for (let i = 0; i <= range.e.c; i++) {
+      const cellRef = XLSX.utils.encode_cell({ r: totalRowIndex, c: i });
+      if (!ws[cellRef]) ws[cellRef] = { v: '', t: 's' };
+      ws[cellRef].s = { font: { bold: true } };
+    }
+    
     // Add the worksheet to the workbook
-    XLSX.utils.book_append_sheet(wb, ws, "Packing Report");
+    XLSX.utils.book_append_sheet(wb, ws, "Delivery Challan");
     
     // Generate filename
-    const fileName = `Packing_Report_${report.report.clientName.substring(0, 10)}_${reportDate.replace(/\//g, '-')}.xlsx`;
+    const fileName = `Delivery_Challan_${report.report.clientName.substring(0, 10)}_${reportDate.replace(/\//g, '-')}.xlsx`;
     
     // Write the workbook and trigger download
     XLSX.writeFile(wb, fileName);
@@ -115,7 +162,7 @@ export async function generatePDF(report: ReportWithItems) {
       <html lang="en">
       <head>
         <meta charset="UTF-8">
-        <title>Packing Material Report</title>
+        <title>Delivery Challan cum Packing List</title>
         <style>
           body {
             font-family: Arial, sans-serif;
@@ -123,13 +170,53 @@ export async function generatePDF(report: ReportWithItems) {
             color: #333;
             margin: 20px;
           }
-          h1 {
-            color: #4a90e2;
+          .company-header {
             text-align: center;
+            margin-bottom: 10px;
+          }
+          .company-logo {
+            max-width: 150px;
+            height: auto;
+            margin: 0 auto;
+            display: block;
+          }
+          .company-name {
+            font-size: 22px;
+            font-weight: bold;
+            margin: 10px 0;
+            color: #00308F;
+          }
+          .company-address {
+            font-size: 12px;
+            margin: 5px 0;
+          }
+          .company-gst {
+            font-size: 14px;
+            font-weight: bold;
+            margin: 5px 0;
+          }
+          h1 {
+            color: #00308F;
+            text-align: center;
+            margin: 20px 0;
+            padding: 10px;
+            border-top: 2px solid #00308F;
+            border-bottom: 2px solid #00308F;
+          }
+          .shipping-header {
             margin-bottom: 20px;
           }
-          .report-header {
-            margin-bottom: 30px;
+          .shipping-title {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 10px;
+          }
+          .report-info {
+            display: flex;
+            justify-content: space-between;
+          }
+          .report-info-section {
+            width: 48%;
           }
           .report-header table {
             width: 100%;
@@ -149,15 +236,17 @@ export async function generatePDF(report: ReportWithItems) {
             margin-top: 20px;
           }
           .items-table th {
-            background-color: #4a90e2;
+            background-color: #00308F;
             color: white;
             font-weight: bold;
-            text-align: left;
+            text-align: center;
             padding: 8px;
+            border: 1px solid #333;
           }
           .items-table td {
-            border: 1px solid #ddd;
+            border: 1px solid #333;
             padding: 8px;
+            text-align: center;
           }
           .items-table tr:nth-child(even) {
             background-color: #f2f2f2;
@@ -166,10 +255,26 @@ export async function generatePDF(report: ReportWithItems) {
             font-weight: bold;
             background-color: #e6e6e6;
           }
+          .text-right {
+            text-align: right;
+          }
+          .signatures {
+            margin-top: 50px;
+            display: flex;
+            justify-content: space-between;
+          }
+          .signature-section {
+            width: 45%;
+          }
+          .signature-line {
+            margin-top: 40px;
+            border-top: 1px solid #333;
+            padding-top: 5px;
+          }
           @media print {
             body {
               margin: 0;
-              padding: 10px;
+              padding: 15px;
             }
             button {
               display: none;
@@ -178,41 +283,57 @@ export async function generatePDF(report: ReportWithItems) {
         </style>
       </head>
       <body>
-        <h1>Packing Material Report</h1>
+        <div class="company-header">
+          <div class="company-name">MYCITIUS TEX PRIVATE LIMITED</div>
+          <div class="company-address">FACTORY ADDRESS: BATIA TOLL PLAZA. PLOT NO B-14/27. HOJIWALA INDUSTRIAL ESTATE ROAD NO 13., SACHIN SURAT. GUJRAT. 394230</div>
+          <div class="company-gst">GST NO: 24AANCM4112H1ZO</div>
+        </div>
         
-        <div class="report-header">
-          <table>
-            <tr>
-              <td class="label">Date:</td>
-              <td>${reportDate}</td>
-              <td class="label">Challan No:</td>
-              <td>${report.report.challanNo}</td>
-            </tr>
-            <tr>
-              <td class="label">Client Name:</td>
-              <td>${report.report.clientName}</td>
-              <td class="label">Quality Name:</td>
-              <td>${report.report.qualityName}</td>
-            </tr>
-            <tr>
-              <td class="label">Client Address:</td>
-              <td>${report.report.clientAddress}</td>
-              <td class="label">Shade Number:</td>
-              <td>${report.report.shadeNumber || "-"}</td>
-            </tr>
-            <tr>
-              <td class="label">Denier:</td>
-              <td>${report.report.denier}</td>
-              <td class="label">Lot Number:</td>
-              <td>${report.report.lotNumber}</td>
-            </tr>
-            <tr>
-              <td class="label">Blend:</td>
-              <td>${report.report.blend}</td>
-              <td></td>
-              <td></td>
-            </tr>
-          </table>
+        <h1>DELIVERY CHALLAN CUM PACKING LIST</h1>
+        
+        <div class="shipping-header">
+          <div class="shipping-title">Shipping Address:</div>
+          <div>${report.report.clientName}</div>
+          <div>${report.report.clientAddress}</div>
+        </div>
+        
+        <div class="report-info">
+          <div class="report-info-section">
+            <table>
+              <tr>
+                <td class="label">Date:</td>
+                <td>${reportDate}</td>
+              </tr>
+              <tr>
+                <td class="label">Challan No:</td>
+                <td>${report.report.challanNo}</td>
+              </tr>
+            </table>
+          </div>
+          <div class="report-info-section">
+            <table>
+              <tr>
+                <td class="label">Quality Name:</td>
+                <td>${report.report.qualityName}</td>
+              </tr>
+              <tr>
+                <td class="label">Shade Number:</td>
+                <td>${report.report.shadeNumber || "-"}</td>
+              </tr>
+              <tr>
+                <td class="label">Denier:</td>
+                <td>${report.report.denier}</td>
+              </tr>
+              <tr>
+                <td class="label">Blend:</td>
+                <td>${report.report.blend}</td>
+              </tr>
+              <tr>
+                <td class="label">Lot Number:</td>
+                <td>${report.report.lotNumber}</td>
+              </tr>
+            </table>
+          </div>
         </div>
         
         <table class="items-table">
@@ -220,9 +341,9 @@ export async function generatePDF(report: ReportWithItems) {
             <tr>
               <th>Sr. No.</th>
               <th>Bag No.</th>
-              <th>Gross Weight</th>
-              <th>Tare Weight</th>
-              <th>Net Weight</th>
+              <th>Gross Weight (kg)</th>
+              <th>Tare Weight (kg)</th>
+              <th>Net Weight (kg)</th>
               <th>Cones</th>
             </tr>
           </thead>
@@ -231,34 +352,34 @@ export async function generatePDF(report: ReportWithItems) {
               <tr>
                 <td>${index + 1}</td>
                 <td>${item.bagNo}</td>
-                <td>${item.grossWeight.toFixed(1)}</td>
-                <td>${item.tareWeight.toFixed(1)}</td>
-                <td>${item.netWeight.toFixed(1)}</td>
+                <td>${Number(item.grossWeight).toFixed(2)}</td>
+                <td>${Number(item.tareWeight).toFixed(2)}</td>
+                <td>${Number(item.netWeight).toFixed(2)}</td>
                 <td>${item.cones}</td>
               </tr>
             `).join('')}
           </tbody>
           <tfoot>
             <tr>
-              <td colspan="2">Grand Total</td>
-              <td>${Number(report.report.totalGrossWeight).toFixed(1)}</td>
-              <td>${Number(report.report.totalTareWeight).toFixed(1)}</td>
-              <td>${Number(report.report.totalNetWeight).toFixed(1)}</td>
-              <td>${report.report.totalCones}</td>
+              <td colspan="2"><strong>Grand Total</strong></td>
+              <td><strong>${Number(report.report.totalGrossWeight).toFixed(2)}</strong></td>
+              <td><strong>${Number(report.report.totalTareWeight).toFixed(2)}</strong></td>
+              <td><strong>${Number(report.report.totalNetWeight).toFixed(2)}</strong></td>
+              <td><strong>${report.report.totalCones}</strong></td>
             </tr>
           </tfoot>
         </table>
         
-        <div style="margin-top: 50px;">
-          <div style="float: left; width: 50%;">
-            <p>Prepared By: _________________</p>
+        <div class="signatures">
+          <div class="signature-section">
+            <div class="signature-line">Prepared By</div>
           </div>
-          <div style="float: right; width: 50%; text-align: right;">
-            <p>Approved By: _________________</p>
+          <div class="signature-section" style="text-align: right;">
+            <div class="signature-line">Approved By</div>
           </div>
         </div>
         
-        <button onclick="window.print()" style="margin-top: 30px; padding: 10px 20px; background-color: #4a90e2; color: white; border: none; border-radius: 4px; cursor: pointer;">
+        <button onclick="window.print()" style="margin-top: 30px; padding: 10px 20px; background-color: #00308F; color: white; border: none; border-radius: 4px; cursor: pointer;">
           Print Report
         </button>
       </body>
