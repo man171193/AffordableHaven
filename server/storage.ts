@@ -201,42 +201,41 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createReport(input: CreateReportInput): Promise<Report> {
-    // Start a transaction
-    return await db.transaction(async (tx) => {
-      // Create the report
-      const [report] = await tx
-        .insert(reports)
-        .values(input.report)
-        .returning();
+    // Neon HTTP driver doesn't support transactions, so we need to do this in separate operations
+    
+    // Create the report first
+    const [report] = await db
+      .insert(reports)
+      .values(input.report)
+      .returning();
 
-      // Create all report items
-      if (input.items.length > 0) {
-        await tx.insert(reportItems).values(
-          input.items.map(item => ({
-            ...item,
-            reportId: report.id
-          }))
-        );
-      }
+    // Create all report items
+    if (input.items.length > 0) {
+      await db.insert(reportItems).values(
+        input.items.map(item => ({
+          ...item,
+          reportId: report.id
+        }))
+      );
+    }
 
-      return report;
-    });
+    return report;
   }
 
   async deleteReport(id: number): Promise<boolean> {
-    return await db.transaction(async (tx) => {
-      // Delete all report items first
-      await tx
-        .delete(reportItems)
-        .where(eq(reportItems.reportId, id));
+    // Neon HTTP driver doesn't support transactions, so we need to do this in separate operations
+    
+    // Delete all report items first
+    await db
+      .delete(reportItems)
+      .where(eq(reportItems.reportId, id));
 
-      // Then delete the report
-      await tx
-        .delete(reports)
-        .where(eq(reports.id, id));
+    // Then delete the report
+    await db
+      .delete(reports)
+      .where(eq(reports.id, id));
 
-      return true;
-    });
+    return true;
   }
 
   async searchReports(params: { 
