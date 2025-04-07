@@ -47,7 +47,7 @@ const reportHeaderSchema = z.object({
 
 type ReportHeaderFormValues = z.infer<typeof reportHeaderSchema>;
 
-// Item interface for the table
+// Item interface for the table (for items we add through the form)
 interface ReportItem {
   bagNo: number;
   qualityName: string;
@@ -355,16 +355,18 @@ export default function CreateReport() {
         blend: headerData.blend,
         lotNumber: headerData.lotNumber,
         totalBags: totals.bags,
-        totalGrossWeight: totals.grossWeight,
-        totalTareWeight: totals.tareWeight,
-        totalNetWeight: totals.netWeight,
+        // Convert decimal values to strings for database
+        totalGrossWeight: String(totals.grossWeight),
+        totalTareWeight: String(totals.tareWeight),
+        totalNetWeight: String(totals.netWeight),
         totalCones: totals.cones,
       },
       items: items.map(item => ({
         bagNo: item.bagNo,
-        grossWeight: item.grossWeight,
-        tareWeight: item.tareWeight,
-        netWeight: item.netWeight,
+        // Convert decimal values to strings for database
+        grossWeight: String(item.grossWeight),
+        tareWeight: String(item.tareWeight),
+        netWeight: String(item.netWeight),
         cones: item.cones,
       })),
     };
@@ -799,20 +801,38 @@ export default function CreateReport() {
               </TableHeader>
               <TableBody>
                 {/* Regular rows */}
-                {(currentReport ? currentReport.items : items).map((item, index) => (
-                  <TableRow key={index} className="hover:bg-gray-50">
-                    <TableCell className="text-gray-500">{index + 1}</TableCell>
-                    <TableCell>{item.bagNo}</TableCell>
-                    <TableCell>{currentReport ? currentReport.report.qualityName : item.qualityName}</TableCell>
-                    <TableCell>{currentReport ? currentReport.report.denier : item.denier}</TableCell>
-                    <TableCell>{currentReport ? currentReport.report.blend : item.blend}</TableCell>
-                    <TableCell>{currentReport ? currentReport.report.lotNumber : item.lotNumber}</TableCell>
-                    <TableCell>{currentReport ? currentReport.report.shadeNumber : item.shadeNumber}</TableCell>
-                    <TableCell>{typeof item.grossWeight === 'number' ? item.grossWeight.toFixed(1) : item.grossWeight}</TableCell>
-                    <TableCell>{typeof item.tareWeight === 'number' ? item.tareWeight.toFixed(1) : item.tareWeight}</TableCell>
-                    <TableCell className="font-medium">{typeof item.netWeight === 'number' ? item.netWeight.toFixed(1) : item.netWeight}</TableCell>
-                    <TableCell>{item.cones}</TableCell>
-                    {!reportFinished && (
+                {currentReport ? (
+                  // Display items from saved report
+                  currentReport.items.map((item, index) => (
+                    <TableRow key={index} className="hover:bg-gray-50">
+                      <TableCell className="text-gray-500">{index + 1}</TableCell>
+                      <TableCell>{item.bagNo}</TableCell>
+                      <TableCell>{currentReport.report.qualityName}</TableCell>
+                      <TableCell>{currentReport.report.denier}</TableCell>
+                      <TableCell>{currentReport.report.blend}</TableCell>
+                      <TableCell>{currentReport.report.lotNumber}</TableCell>
+                      <TableCell>{currentReport.report.shadeNumber}</TableCell>
+                      <TableCell>{typeof item.grossWeight === 'number' ? item.grossWeight.toFixed(1) : item.grossWeight}</TableCell>
+                      <TableCell>{typeof item.tareWeight === 'number' ? item.tareWeight.toFixed(1) : item.tareWeight}</TableCell>
+                      <TableCell className="font-medium">{typeof item.netWeight === 'number' ? item.netWeight.toFixed(1) : item.netWeight}</TableCell>
+                      <TableCell>{item.cones}</TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  // Display items from current form
+                  items.map((item, index) => (
+                    <TableRow key={index} className="hover:bg-gray-50">
+                      <TableCell className="text-gray-500">{index + 1}</TableCell>
+                      <TableCell>{item.bagNo}</TableCell>
+                      <TableCell>{item.qualityName}</TableCell>
+                      <TableCell>{item.denier}</TableCell>
+                      <TableCell>{item.blend}</TableCell>
+                      <TableCell>{item.lotNumber}</TableCell>
+                      <TableCell>{item.shadeNumber}</TableCell>
+                      <TableCell>{typeof item.grossWeight === 'number' ? item.grossWeight.toFixed(1) : item.grossWeight}</TableCell>
+                      <TableCell>{typeof item.tareWeight === 'number' ? item.tareWeight.toFixed(1) : item.tareWeight}</TableCell>
+                      <TableCell className="font-medium">{typeof item.netWeight === 'number' ? item.netWeight.toFixed(1) : item.netWeight}</TableCell>
+                      <TableCell>{item.cones}</TableCell>
                       <TableCell className="text-right">
                         <Button 
                           variant="ghost" 
@@ -823,9 +843,9 @@ export default function CreateReport() {
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </TableCell>
-                    )}
-                  </TableRow>
-                ))}
+                    </TableRow>
+                  ))
+                )}
 
                 {/* Subtotal rows */}
                 {Object.entries(qualitySubtotals).map(([quality, subtotal]) => (

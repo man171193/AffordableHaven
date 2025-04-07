@@ -73,6 +73,11 @@ export const reports = pgTable("reports", {
 export const insertReportSchema = createInsertSchema(reports).omit({
   id: true,
   createdAt: true,
+}).extend({
+  // Explicitly define decimal fields as strings for Zod validation
+  totalGrossWeight: z.string(),
+  totalTareWeight: z.string(),
+  totalNetWeight: z.string(),
 });
 
 export type InsertReport = z.infer<typeof insertReportSchema>;
@@ -91,6 +96,11 @@ export const reportItems = pgTable("report_items", {
 
 export const insertReportItemSchema = createInsertSchema(reportItems).omit({
   id: true,
+}).extend({
+  // Explicitly define decimal fields as strings for Zod validation
+  grossWeight: z.string(),
+  tareWeight: z.string(),
+  netWeight: z.string(),
 });
 
 export type InsertReportItem = z.infer<typeof insertReportItemSchema>;
