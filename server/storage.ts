@@ -1,5 +1,4 @@
 import { 
-  users, type User, type InsertUser,
   clients, type Client, type InsertClient,
   qualities, type Quality, type InsertQuality,
   reports, type Report, type InsertReport,
@@ -15,11 +14,6 @@ import MemoryStore from "memorystore";
 export interface IStorage {
   // Session store for authentication
   sessionStore: session.Store;
-
-  // Users
-  getUser(id: number): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
 
   // Clients
   getClients(): Promise<Client[]>;
@@ -62,24 +56,7 @@ export class DatabaseStorage implements IStorage {
     });
   }
 
-  // User methods
-  async getUser(id: number): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user;
-  }
-
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user;
-  }
-
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(insertUser)
-      .returning();
-    return user;
-  }
+  // Authentication no longer used
 
   // Client methods
   async getClients(): Promise<Client[]> {
