@@ -171,13 +171,14 @@ export default function CreateReport() {
     }
   }, [selectedClientId, clients, headerForm]);
 
-  // Update denier and blend when quality changes
+  // Update denier, blend, and shade number when quality changes
   useEffect(() => {
     if (selectedQuality && qualities.length > 0) {
       const quality = qualities.find((q: Quality) => q.name === selectedQuality);
       if (quality) {
         headerForm.setValue("denier", quality.denier);
         headerForm.setValue("blend", quality.blend);
+        headerForm.setValue("shadeNumber", quality.shadeNumber || "");
         
         // Reset bag number when quality changes
         const itemsWithCurrentQuality = items.filter(item => item.qualityName === selectedQuality);
@@ -665,12 +666,14 @@ export default function CreateReport() {
                   )}
                 </div>
 
-                {/* Shade Number */}
+                {/* Shade Number - Auto-populated */}
                 <div>
                   <Label htmlFor="shadeNumber">Shade Number</Label>
                   <Input
                     id="shadeNumber"
-                    placeholder="e.g. UV refuge"
+                    placeholder="Auto-populated from quality"
+                    readOnly
+                    className="bg-gray-50"
                     {...headerForm.register("shadeNumber")}
                   />
                 </div>

@@ -15,6 +15,7 @@ const qualitySchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   denier: z.coerce.number().min(1, 'Denier must be a positive number'),
   blend: z.string().min(2, 'Blend must be at least 2 characters'),
+  shadeNumber: z.string().optional(),
 });
 
 type QualityFormValues = z.infer<typeof qualitySchema>;
@@ -34,6 +35,7 @@ export function AddQualityDialog({ open, onOpenChange, onQualityAdded }: AddQual
       name: '',
       denier: 0,
       blend: '',
+      shadeNumber: '',
     },
   });
   
@@ -118,6 +120,20 @@ export function AddQualityDialog({ open, onOpenChange, onQualityAdded }: AddQual
                   <FormLabel>Blend</FormLabel>
                   <FormControl>
                     <Input placeholder="Enter blend value" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="shadeNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Shade Number</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter shade number (optional)" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

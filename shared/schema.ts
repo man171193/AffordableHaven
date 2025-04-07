@@ -39,6 +39,7 @@ export const qualities = pgTable("qualities", {
   name: varchar("name", { length: 50 }).notNull().unique(),
   denier: integer("denier").notNull(),
   blend: varchar("blend", { length: 50 }).notNull(),
+  shadeNumber: varchar("shade_number", { length: 50 }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -46,6 +47,7 @@ export const insertQualitySchema = createInsertSchema(qualities).pick({
   name: true,
   denier: true,
   blend: true,
+  shadeNumber: true,
 });
 
 export type InsertQuality = z.infer<typeof insertQualitySchema>;
