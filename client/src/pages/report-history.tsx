@@ -68,12 +68,12 @@ export default function ReportHistory() {
   const [endDate, setEndDate] = useState<string>("");
   
   // Fetch clients for filter
-  const { data: clients = [] } = useQuery({
+  const { data: clients = [] } = useQuery<Client[]>({
     queryKey: ["/api/clients"],
   });
 
   // Fetch qualities for filter
-  const { data: qualities = [] } = useQuery({
+  const { data: qualities = [] } = useQuery<Quality[]>({
     queryKey: ["/api/qualities"],
   });
 
@@ -122,7 +122,7 @@ export default function ReportHistory() {
     data: reports = [], 
     isLoading,
     refetch 
-  } = useQuery({
+  } = useQuery<ReportRow[]>({
     queryKey: [`/api/reports?${buildQueryParams()}`],
   });
 
@@ -338,7 +338,7 @@ export default function ReportHistory() {
                   <SelectValue placeholder="All Clients" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Clients</SelectItem>
+                  <SelectItem value="all">All Clients</SelectItem>
                   {clients.map((client: Client) => (
                     <SelectItem key={client.id} value={client.id.toString()}>
                       {client.name}
@@ -396,7 +396,7 @@ export default function ReportHistory() {
                   <SelectValue placeholder="All Qualities" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Qualities</SelectItem>
+                  <SelectItem value="all">All Qualities</SelectItem>
                   {qualities.map((quality: Quality) => (
                     <SelectItem key={quality.id} value={quality.name}>
                       {quality.name}

@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/select";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Client, Quality, ReportWithItems } from "@shared/schema";
+import { Client, Quality, ReportWithItems, CreateReportInput } from "@shared/schema";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { FileSpreadsheet, File, Trash2, PlusCircle } from "lucide-react";
 import { generateExcel, generatePDF } from "@/lib/exporters";
@@ -107,12 +107,12 @@ export default function CreateReport() {
   }, [items]);
 
   // Fetch clients
-  const { data: clients = [] } = useQuery({
+  const { data: clients = [] } = useQuery<Client[]>({
     queryKey: ["/api/clients"],
   });
 
   // Fetch qualities
-  const { data: qualities = [] } = useQuery({
+  const { data: qualities = [] } = useQuery<Quality[]>({
     queryKey: ["/api/qualities"],
   });
 
@@ -300,7 +300,7 @@ export default function CreateReport() {
 
   // Create report mutation
   const createReportMutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: CreateReportInput) => {
       return apiRequest("POST", "/api/reports", data);
     },
     onSuccess: async (response) => {
@@ -344,7 +344,7 @@ export default function CreateReport() {
     }
 
     // Prepare the report data
-    const reportData = {
+    const reportData: CreateReportInput = {
       report: {
         reportDate: headerData.reportDate,
         clientId: headerData.clientId,
