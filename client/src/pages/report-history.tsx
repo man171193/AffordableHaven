@@ -246,7 +246,7 @@ export default function ReportHistory() {
       header: "Total Net Wt",
       cell: ({ row }) => {
         const weight = parseFloat(row.getValue("totalNetWeight"));
-        return `${weight.toFixed(1)} kg`;
+        return `${weight.toFixed(3)} kg`;
       },
     },
     {
@@ -486,17 +486,17 @@ export default function ReportHistory() {
                           <TableRow key={item.id}>
                             <TableCell>{index + 1}</TableCell>
                             <TableCell>{item.bagNo}</TableCell>
-                            <TableCell>{item.grossWeight.toFixed(1)}</TableCell>
-                            <TableCell>{item.tareWeight.toFixed(1)}</TableCell>
-                            <TableCell className="font-medium">{item.netWeight.toFixed(1)}</TableCell>
+                            <TableCell>{item.grossWeight.toFixed(3)}</TableCell>
+                            <TableCell>{item.tareWeight.toFixed(3)}</TableCell>
+                            <TableCell className="font-medium">{item.netWeight.toFixed(3)}</TableCell>
                             <TableCell>{item.cones}</TableCell>
                           </TableRow>
                         ))}
                         <TableRow className="bg-primary/10 font-semibold">
                           <TableCell colSpan={2}>Grand Total</TableCell>
-                          <TableCell>{selectedReport.report.totalGrossWeight.toFixed(1)}</TableCell>
-                          <TableCell>{selectedReport.report.totalTareWeight.toFixed(1)}</TableCell>
-                          <TableCell>{selectedReport.report.totalNetWeight.toFixed(1)}</TableCell>
+                          <TableCell>{selectedReport.report.totalGrossWeight.toFixed(3)}</TableCell>
+                          <TableCell>{selectedReport.report.totalTareWeight.toFixed(3)}</TableCell>
+                          <TableCell>{selectedReport.report.totalNetWeight.toFixed(3)}</TableCell>
                           <TableCell>{selectedReport.report.totalCones}</TableCell>
                         </TableRow>
                       </TableBody>

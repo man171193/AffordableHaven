@@ -52,23 +52,23 @@ export async function generateExcel(report: ReportWithItems) {
       "Cones"
     ];
     
-    // Create the rows for each item with 2 decimal places
+    // Create the rows for each item with 3 decimal places
     const itemRows = report.items.map((item, index) => [
       index + 1,
       item.bagNo,
-      Number(item.grossWeight).toFixed(2),
-      Number(item.tareWeight).toFixed(2),
-      Number(item.netWeight).toFixed(2),
+      Number(item.grossWeight).toFixed(3),
+      Number(item.tareWeight).toFixed(3),
+      Number(item.netWeight).toFixed(3),
       item.cones
     ]);
     
-    // Add totals row with 2 decimal places
+    // Add totals row with 3 decimal places
     const totalsRow = [
       "Total",
       "",
-      Number(report.report.totalGrossWeight).toFixed(2),
-      Number(report.report.totalTareWeight).toFixed(2),
-      Number(report.report.totalNetWeight).toFixed(2),
+      Number(report.report.totalGrossWeight).toFixed(3),
+      Number(report.report.totalTareWeight).toFixed(3),
+      Number(report.report.totalNetWeight).toFixed(3),
       report.report.totalCones
     ];
     
@@ -352,9 +352,9 @@ export async function generatePDF(report: ReportWithItems) {
               <tr>
                 <td>${index + 1}</td>
                 <td>${item.bagNo}</td>
-                <td>${Number(item.grossWeight).toFixed(2)}</td>
-                <td>${Number(item.tareWeight).toFixed(2)}</td>
-                <td>${Number(item.netWeight).toFixed(2)}</td>
+                <td>${Number(item.grossWeight).toFixed(3)}</td>
+                <td>${Number(item.tareWeight).toFixed(3)}</td>
+                <td>${Number(item.netWeight).toFixed(3)}</td>
                 <td>${item.cones}</td>
               </tr>
             `).join('')}
@@ -362,9 +362,9 @@ export async function generatePDF(report: ReportWithItems) {
           <tfoot>
             <tr>
               <td colspan="2"><strong>Grand Total</strong></td>
-              <td><strong>${Number(report.report.totalGrossWeight).toFixed(2)}</strong></td>
-              <td><strong>${Number(report.report.totalTareWeight).toFixed(2)}</strong></td>
-              <td><strong>${Number(report.report.totalNetWeight).toFixed(2)}</strong></td>
+              <td><strong>${Number(report.report.totalGrossWeight).toFixed(3)}</strong></td>
+              <td><strong>${Number(report.report.totalTareWeight).toFixed(3)}</strong></td>
+              <td><strong>${Number(report.report.totalNetWeight).toFixed(3)}</strong></td>
               <td><strong>${report.report.totalCones}</strong></td>
             </tr>
           </tfoot>

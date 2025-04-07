@@ -193,15 +193,21 @@ export default function CreateReport() {
     }
   }, [selectedQuality, qualities, headerForm, items, itemForm]);
 
-  // Get the next bag number
+  // Get the next bag number (based on items with the same quality)
   useEffect(() => {
-    if (items.length > 0) {
-      const maxBagNo = Math.max(...items.map(item => item.bagNo));
-      itemForm.setValue("bagNo", maxBagNo + 1);
-    } else {
+    if (selectedQuality) {
+      const itemsWithSameQuality = items.filter(item => item.qualityName === selectedQuality);
+      if (itemsWithSameQuality.length > 0) {
+        const maxBagNo = Math.max(...itemsWithSameQuality.map(item => item.bagNo));
+        itemForm.setValue("bagNo", maxBagNo + 1);
+      } else {
+        // Start from 1 for a new quality
+        itemForm.setValue("bagNo", 1);
+      }
+    } else if (items.length === 0) {
       itemForm.setValue("bagNo", 1);
     }
-  }, [items, itemForm]);
+  }, [items, itemForm, selectedQuality]);
 
   // Add item handler
   const handleAddItem = itemForm.handleSubmit((data) => {
@@ -251,10 +257,17 @@ export default function CreateReport() {
     setItems(updatedItems);
     calculateTotals(updatedItems);
 
-    // Update the bag number for the next item
-    if (updatedItems.length > 0) {
-      const maxBagNo = Math.max(...updatedItems.map(item => item.bagNo));
-      itemForm.setValue("bagNo", maxBagNo + 1);
+    // Update the bag number for the next item based on current quality
+    const currentQuality = headerForm.getValues("qualityName");
+    if (currentQuality && updatedItems.length > 0) {
+      const itemsWithSameQuality = updatedItems.filter(item => item.qualityName === currentQuality);
+      if (itemsWithSameQuality.length > 0) {
+        const maxBagNo = Math.max(...itemsWithSameQuality.map(item => item.bagNo));
+        itemForm.setValue("bagNo", maxBagNo + 1);
+      } else {
+        // If no items with current quality, start from 1
+        itemForm.setValue("bagNo", 1);
+      }
     } else {
       itemForm.setValue("bagNo", 1);
     }
@@ -736,8 +749,8 @@ export default function CreateReport() {
                   <Input
                     id="grossWeight"
                     type="number"
-                    step="0.1"
-                    placeholder="e.g. 18.4"
+                    step="0.001"
+                    placeholder="e.g. 18.456"
                     {...itemForm.register("grossWeight")}
                   />
                   {itemForm.formState.errors.grossWeight && (
@@ -751,8 +764,8 @@ export default function CreateReport() {
                   <Input
                     id="tareWeight"
                     type="number"
-                    step="0.1"
-                    placeholder="e.g. 3"
+                    step="0.001"
+                    placeholder="e.g. 3.123"
                     {...itemForm.register("tareWeight")}
                   />
                   {itemForm.formState.errors.tareWeight && (
@@ -766,7 +779,7 @@ export default function CreateReport() {
                   <Input
                     id="netWeight"
                     type="number"
-                    value={netWeight.toFixed(1)}
+                    value={netWeight.toFixed(3)}
                     readOnly
                     className="bg-gray-50"
                   />
@@ -850,9 +863,9 @@ export default function CreateReport() {
                       <TableCell>{currentReport.report.blend}</TableCell>
                       <TableCell>{currentReport.report.lotNumber}</TableCell>
                       <TableCell>{currentReport.report.shadeNumber}</TableCell>
-                      <TableCell>{typeof item.grossWeight === 'number' ? item.grossWeight.toFixed(1) : item.grossWeight}</TableCell>
-                      <TableCell>{typeof item.tareWeight === 'number' ? item.tareWeight.toFixed(1) : item.tareWeight}</TableCell>
-                      <TableCell className="font-medium">{typeof item.netWeight === 'number' ? item.netWeight.toFixed(1) : item.netWeight}</TableCell>
+                      <TableCell>{typeof item.grossWeight === 'number' ? item.grossWeight.toFixed(3) : item.grossWeight}</TableCell>
+                      <TableCell>{typeof item.tareWeight === 'number' ? item.tareWeight.toFixed(3) : item.tareWeight}</TableCell>
+                      <TableCell className="font-medium">{typeof item.netWeight === 'number' ? item.netWeight.toFixed(3) : item.netWeight}</TableCell>
                       <TableCell>{item.cones}</TableCell>
                     </TableRow>
                   ))
@@ -867,9 +880,9 @@ export default function CreateReport() {
                       <TableCell>{item.blend}</TableCell>
                       <TableCell>{item.lotNumber}</TableCell>
                       <TableCell>{item.shadeNumber}</TableCell>
-                      <TableCell>{typeof item.grossWeight === 'number' ? item.grossWeight.toFixed(1) : item.grossWeight}</TableCell>
-                      <TableCell>{typeof item.tareWeight === 'number' ? item.tareWeight.toFixed(1) : item.tareWeight}</TableCell>
-                      <TableCell className="font-medium">{typeof item.netWeight === 'number' ? item.netWeight.toFixed(1) : item.netWeight}</TableCell>
+                      <TableCell>{typeof item.grossWeight === 'number' ? item.grossWeight.toFixed(3) : item.grossWeight}</TableCell>
+                      <TableCell>{typeof item.tareWeight === 'number' ? item.tareWeight.toFixed(3) : item.tareWeight}</TableCell>
+                      <TableCell className="font-medium">{typeof item.netWeight === 'number' ? item.netWeight.toFixed(3) : item.netWeight}</TableCell>
                       <TableCell>{item.cones}</TableCell>
                       <TableCell className="text-right">
                         <Button 
@@ -889,9 +902,9 @@ export default function CreateReport() {
                 {Object.entries(qualitySubtotals).map(([quality, subtotal]) => (
                   <TableRow key={`subtotal-${quality}`} className="bg-gray-50 font-medium">
                     <TableCell colSpan={7}>Subtotal for {quality}</TableCell>
-                    <TableCell>{subtotal.grossWeight.toFixed(1)}</TableCell>
-                    <TableCell>{subtotal.tareWeight.toFixed(1)}</TableCell>
-                    <TableCell>{subtotal.netWeight.toFixed(1)}</TableCell>
+                    <TableCell>{subtotal.grossWeight.toFixed(3)}</TableCell>
+                    <TableCell>{subtotal.tareWeight.toFixed(3)}</TableCell>
+                    <TableCell>{subtotal.netWeight.toFixed(3)}</TableCell>
                     <TableCell>{subtotal.cones}</TableCell>
                     {!reportFinished && <TableCell></TableCell>}
                   </TableRow>
@@ -900,9 +913,9 @@ export default function CreateReport() {
                 {/* Grand total row */}
                 <TableRow className="bg-primary/10 font-semibold">
                   <TableCell colSpan={7}>Grand Total</TableCell>
-                  <TableCell>{currentReport ? Number(currentReport.report.totalGrossWeight).toFixed(1) : totals.grossWeight.toFixed(1)}</TableCell>
-                  <TableCell>{currentReport ? Number(currentReport.report.totalTareWeight).toFixed(1) : totals.tareWeight.toFixed(1)}</TableCell>
-                  <TableCell>{currentReport ? Number(currentReport.report.totalNetWeight).toFixed(1) : totals.netWeight.toFixed(1)}</TableCell>
+                  <TableCell>{currentReport ? Number(currentReport.report.totalGrossWeight).toFixed(3) : totals.grossWeight.toFixed(3)}</TableCell>
+                  <TableCell>{currentReport ? Number(currentReport.report.totalTareWeight).toFixed(3) : totals.tareWeight.toFixed(3)}</TableCell>
+                  <TableCell>{currentReport ? Number(currentReport.report.totalNetWeight).toFixed(3) : totals.netWeight.toFixed(3)}</TableCell>
                   <TableCell>{currentReport ? currentReport.report.totalCones : totals.cones}</TableCell>
                   {!reportFinished && <TableCell></TableCell>}
                 </TableRow>
