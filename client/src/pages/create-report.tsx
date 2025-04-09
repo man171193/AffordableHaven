@@ -23,6 +23,19 @@ import { FileSpreadsheet, File, Trash2, PlusCircle, UserPlus, Tag, Plus } from "
 import { generateExcel, generatePDF } from "@/lib/exporters";
 import { AddClientDialog } from "@/components/add-client-dialog";
 import { AddQualityDialog } from "@/components/add-quality-dialog";
+import { AnimatedInput } from "@/components/ui/animated-input";
+import { AnimatedTextarea } from "@/components/ui/animated-textarea";
+import { AnimatedSelect } from "@/components/ui/animated-select";
+import { AnimatedButton } from "@/components/ui/animated-button";
+import { 
+  AnimatedCard, 
+  AnimatedCardHeader, 
+  AnimatedCardTitle, 
+  AnimatedCardContent, 
+  AnimatedCardFooter
+} from "@/components/ui/animated-card";
+import { useFormAnimation } from "@/hooks/use-form-animation";
+import { motion } from "framer-motion";
 
 // Form schema for adding an item
 const addItemSchema = z.object({
@@ -65,6 +78,7 @@ interface ReportItem {
 
 export default function CreateReport() {
   const { toast } = useToast();
+  const { staggerAnimation, itemAnimation, formSubmitAnimation } = useFormAnimation();
   const [items, setItems] = useState<ReportItem[]>([]);
   const [totals, setTotals] = useState({
     bags: 0,
@@ -533,17 +547,12 @@ export default function CreateReport() {
             <CardContent className="p-6">
               <form className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {/* Date field */}
-                <div>
-                  <Label htmlFor="reportDate">Report Date</Label>
-                  <Input
-                    id="reportDate"
-                    type="date"
-                    {...headerForm.register("reportDate")}
-                  />
-                  {headerForm.formState.errors.reportDate && (
-                    <p className="text-sm text-red-500 mt-1">{headerForm.formState.errors.reportDate.message}</p>
-                  )}
-                </div>
+                <Input
+                  id="reportDate"
+                  type="date"
+                  placeholder="Report Date"
+                  {...headerForm.register("reportDate")}
+                />
 
                 {/* Client name with search */}
                 <div>
