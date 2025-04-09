@@ -8,13 +8,9 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, like, sql, isNull } from "drizzle-orm";
-import session from "express-session";
-import MemoryStore from "memorystore";
 
 // Expanded storage interface
 export interface IStorage {
-  // Session store for authentication
-  sessionStore: session.Store;
 
   // Users
   getUser(id: number): Promise<User | undefined>;
@@ -53,13 +49,8 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
-  sessionStore: session.Store;
-
   constructor() {
-    const MemoryStoreSession = MemoryStore(session);
-    this.sessionStore = new MemoryStoreSession({
-      checkPeriod: 86400000 // prune expired entries every 24h
-    });
+    // No session store needed
   }
 
   // User methods
