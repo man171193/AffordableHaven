@@ -1,4 +1,5 @@
 import { 
+  users, type User, type InsertUser,
   clients, type Client, type InsertClient,
   qualities, type Quality, type InsertQuality,
   reports, type Report, type InsertReport,
@@ -14,6 +15,11 @@ import MemoryStore from "memorystore";
 export interface IStorage {
   // Session store for authentication
   sessionStore: session.Store;
+
+  // Users
+  getUser(id: number): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
 
   // Clients
   getClients(): Promise<Client[]>;
@@ -56,7 +62,24 @@ export class DatabaseStorage implements IStorage {
     });
   }
 
-  // Authentication no longer used
+  // User methods
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
+    return user;
+  }
 
   // Client methods
   async getClients(): Promise<Client[]> {
@@ -76,18 +99,18 @@ export class DatabaseStorage implements IStorage {
   async createClient(client: InsertClient): Promise<Client> {
     const [newClient] = await db
       .insert(clients)
-      .values([client])
+      .values(client)
       .returning();
-    
     return newClient;
   }
 
   async updateClient(id: number, client: Partial<InsertClient>): Promise<Client | undefined> {
-    await db
+    const [updatedClient] = await db
       .update(clients)
       .set(client)
-      .where(eq(clients.id, id));
-    return this.getClient(id);
+      .where(eq(clients.id, id))
+      .returning();
+    return updatedClient;
   }
 
   async deleteClient(id: number): Promise<boolean> {
@@ -115,18 +138,18 @@ export class DatabaseStorage implements IStorage {
   async createQuality(quality: InsertQuality): Promise<Quality> {
     const [newQuality] = await db
       .insert(qualities)
-      .values([quality])
+      .values(quality)
       .returning();
-    
     return newQuality;
   }
 
   async updateQuality(id: number, quality: Partial<InsertQuality>): Promise<Quality | undefined> {
-    await db
+    const [updatedQuality] = await db
       .update(qualities)
       .set(quality)
-      .where(eq(qualities.id, id));
-    return this.getQuality(id);
+      .where(eq(qualities.id, id))
+      .returning();
+    return updatedQuality;
   }
 
   async deleteQuality(id: number): Promise<boolean> {
@@ -138,31 +161,16 @@ export class DatabaseStorage implements IStorage {
 
   // Report methods
   async getReports(): Promise<(Report & { clientName: string })[]> {
-    // Need to select columns explicitly for type safety
     const result = await db
       .select({
-        id: reports.id,
-        reportDate: reports.reportDate,
-        clientId: reports.clientId,
-        challanNo: reports.challanNo,
-        qualityName: reports.qualityName,
-        shadeNumber: reports.shadeNumber,
-        denier: reports.denier,
-        blend: reports.blend,
-        lotNumber: reports.lotNumber,
-        totalBags: reports.totalBags,
-        totalGrossWeight: reports.totalGrossWeight,
-        totalTareWeight: reports.totalTareWeight,
-        totalNetWeight: reports.totalNetWeight,
-        totalCones: reports.totalCones,
-        createdAt: reports.createdAt,
+        ...reports,
         clientName: clients.name
       })
       .from(reports)
       .innerJoin(clients, eq(reports.clientId, clients.id))
       .orderBy(desc(reports.reportDate));
     
-    return result as (Report & { clientName: string })[];
+    return result;
   }
 
   async getReport(id: number): Promise<Report | undefined> {
@@ -171,98 +179,58 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getReportWithItems(id: number): Promise<ReportWithItems | undefined> {
-    // Use explicit column selection for type safety
-    const reportResult = await db
+    const report = await db
       .select({
-        id: reports.id,
-        reportDate: reports.reportDate,
-        clientId: reports.clientId,
-        challanNo: reports.challanNo,
-        qualityName: reports.qualityName,
-        shadeNumber: reports.shadeNumber,
-        denier: reports.denier,
-        blend: reports.blend,
-        lotNumber: reports.lotNumber,
-        totalBags: reports.totalBags,
-        totalGrossWeight: reports.totalGrossWeight,
-        totalTareWeight: reports.totalTareWeight,
-        totalNetWeight: reports.totalNetWeight,
-        totalCones: reports.totalCones,
-        createdAt: reports.createdAt,
+        ...reports,
         clientName: clients.name,
         clientAddress: clients.address
       })
       .from(reports)
       .innerJoin(clients, eq(reports.clientId, clients.id))
-      .where(eq(reports.id, id));
-    
-    if (reportResult.length === 0) return undefined;
-    
-    const report = reportResult[0];
+      .where(eq(reports.id, id))
+      .then(res => res[0]);
+
+    if (!report) return undefined;
 
     const items = await db
-      .select({
-        id: reportItems.id,
-        reportId: reportItems.reportId,
-        bagNo: reportItems.bagNo,
-        grossWeight: reportItems.grossWeight,
-        tareWeight: reportItems.tareWeight,
-        netWeight: reportItems.netWeight,
-        cones: reportItems.cones
-      })
+      .select()
       .from(reportItems)
       .where(eq(reportItems.reportId, id))
       .orderBy(reportItems.bagNo);
 
-    // Converting to the right format for the frontend with explicit typing
-    const reportData = {
+    return {
       report: {
-        id: report.id,
-        reportDate: report.reportDate.toString(),
-        clientId: report.clientId,
-        challanNo: report.challanNo,
-        qualityName: report.qualityName,
-        shadeNumber: report.shadeNumber,
-        denier: report.denier,
-        blend: report.blend,
-        lotNumber: report.lotNumber,
-        totalBags: report.totalBags,
+        ...report,
         totalGrossWeight: Number(report.totalGrossWeight),
         totalTareWeight: Number(report.totalTareWeight),
-        totalNetWeight: Number(report.totalNetWeight),
-        totalCones: report.totalCones,
-        createdAt: report.createdAt.toString(),
-        clientName: report.clientName,
-        clientAddress: report.clientAddress
+        totalNetWeight: Number(report.totalNetWeight)
       },
       items: items.map(item => ({
-        id: item.id,
-        reportId: item.reportId,
-        bagNo: item.bagNo,
+        ...item,
         grossWeight: Number(item.grossWeight),
         tareWeight: Number(item.tareWeight),
-        netWeight: Number(item.netWeight),
-        cones: item.cones
+        netWeight: Number(item.netWeight)
       }))
     };
-    
-    return reportData as ReportWithItems;
   }
 
   async createReport(input: CreateReportInput): Promise<Report> {
-    // Create the report first with returning to get the ID
+    // Neon HTTP driver doesn't support transactions, so we need to do this in separate operations
+    
+    // Create the report first
     const [report] = await db
       .insert(reports)
-      .values([input.report])
+      .values(input.report)
       .returning();
-    
+
     // Create all report items
     if (input.items.length > 0) {
-      const reportItemsData = input.items.map(item => ({
-        ...item,
-        reportId: report.id
-      }));
-      await db.insert(reportItems).values(reportItemsData);
+      await db.insert(reportItems).values(
+        input.items.map(item => ({
+          ...item,
+          reportId: report.id
+        }))
+      );
     }
 
     return report;
@@ -291,24 +259,9 @@ export class DatabaseStorage implements IStorage {
     endDate?: Date,
     searchTerm?: string
   }): Promise<(Report & { clientName: string })[]> {
-    // Use explicit column selection for type safety
-    let baseQuery = db
+    let query = db
       .select({
-        id: reports.id,
-        reportDate: reports.reportDate,
-        clientId: reports.clientId,
-        challanNo: reports.challanNo,
-        qualityName: reports.qualityName,
-        shadeNumber: reports.shadeNumber,
-        denier: reports.denier,
-        blend: reports.blend,
-        lotNumber: reports.lotNumber,
-        totalBags: reports.totalBags,
-        totalGrossWeight: reports.totalGrossWeight,
-        totalTareWeight: reports.totalTareWeight,
-        totalNetWeight: reports.totalNetWeight,
-        totalCones: reports.totalCones,
-        createdAt: reports.createdAt,
+        ...reports,
         clientName: clients.name
       })
       .from(reports)
@@ -338,19 +291,18 @@ export class DatabaseStorage implements IStorage {
         sql`(
           ${like(clients.name, searchTerm)} OR
           ${like(reports.qualityName, searchTerm)} OR
-          CAST(${reports.challanNo} AS CHAR) LIKE ${searchTerm}
+          CAST(${reports.challanNo} AS TEXT) LIKE ${searchTerm}
         )`
       );
     }
 
-    let query = baseQuery;
     if (conditions.length > 0) {
       query = query.where(and(...conditions));
     }
 
     const result = await query.orderBy(desc(reports.reportDate));
     
-    return result as (Report & { clientName: string })[];
+    return result;
   }
 }
 

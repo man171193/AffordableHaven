@@ -1,31 +1,35 @@
-import { 
-  pgTable, 
-  text, 
-  integer, 
-  boolean, 
-  varchar, 
-  decimal, 
-  timestamp, 
-  date, 
-  primaryKey, 
-  json,
-  pgEnum,
-  serial
-} from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, varchar, decimal, timestamp, date, primaryKey, json } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+
+// User table (keeping the existing one)
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  username: text("username").notNull().unique(),
+  password: text("password").notNull(),
+  name: text("name").notNull(),
+});
+
+export const insertUserSchema = createInsertSchema(users).pick({
+  username: true,
+  password: true,
+  name: true,
+});
+
+export type InsertUser = z.infer<typeof insertUserSchema>;
+export type User = typeof users.$inferSelect;
 
 // Clients table
 export const clients = pgTable("clients", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 100 }).notNull().unique(),
   address: text("address").notNull(),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const insertClientSchema = createInsertSchema(clients).omit({
-  id: true,
-  createdAt: true,
+export const insertClientSchema = createInsertSchema(clients).pick({
+  name: true,
+  address: true,
 });
 
 export type InsertClient = z.infer<typeof insertClientSchema>;
@@ -38,12 +42,14 @@ export const qualities = pgTable("qualities", {
   denier: integer("denier").notNull(),
   blend: varchar("blend", { length: 50 }).notNull(),
   shadeNumber: varchar("shade_number", { length: 50 }),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const insertQualitySchema = createInsertSchema(qualities).omit({
-  id: true,
-  createdAt: true,
+export const insertQualitySchema = createInsertSchema(qualities).pick({
+  name: true,
+  denier: true,
+  blend: true,
+  shadeNumber: true,
 });
 
 export type InsertQuality = z.infer<typeof insertQualitySchema>;
@@ -61,11 +67,11 @@ export const reports = pgTable("reports", {
   blend: varchar("blend", { length: 50 }).notNull(),
   lotNumber: integer("lot_number").notNull(),
   totalBags: integer("total_bags").notNull(),
-  totalGrossWeight: decimal("total_gross_weight", { precision: 10, scale: 3 }).notNull(),
-  totalTareWeight: decimal("total_tare_weight", { precision: 10, scale: 3 }).notNull(),
-  totalNetWeight: decimal("total_net_weight", { precision: 10, scale: 3 }).notNull(),
+  totalGrossWeight: decimal("total_gross_weight", { precision: 10, scale: 2 }).notNull(),
+  totalTareWeight: decimal("total_tare_weight", { precision: 10, scale: 2 }).notNull(),
+  totalNetWeight: decimal("total_net_weight", { precision: 10, scale: 2 }).notNull(),
   totalCones: integer("total_cones").notNull(),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const insertReportSchema = createInsertSchema(reports).omit({
@@ -86,9 +92,9 @@ export const reportItems = pgTable("report_items", {
   id: serial("id").primaryKey(),
   reportId: integer("report_id").notNull(),
   bagNo: integer("bag_no").notNull(),
-  grossWeight: decimal("gross_weight", { precision: 10, scale: 3 }).notNull(),
-  tareWeight: decimal("tare_weight", { precision: 10, scale: 3 }).notNull(),
-  netWeight: decimal("net_weight", { precision: 10, scale: 3 }).notNull(),
+  grossWeight: decimal("gross_weight", { precision: 10, scale: 2 }).notNull(),
+  tareWeight: decimal("tare_weight", { precision: 10, scale: 2 }).notNull(),
+  netWeight: decimal("net_weight", { precision: 10, scale: 2 }).notNull(),
   cones: integer("cones").notNull(),
 });
 

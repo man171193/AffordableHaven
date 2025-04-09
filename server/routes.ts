@@ -8,8 +8,11 @@ import {
 } from "@shared/schema";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
+import { setupAuth, requireAuth } from "./auth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Set up authentication
+  setupAuth(app);
   const apiRouter = express.Router();
 
   // Error handling middleware
@@ -66,7 +69,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // All API routes are accessible without authentication
+  // Access these routes without authentication
+  // Authentication endpoints are already set up in setupAuth
+
+  // All other API routes require authentication
+  apiRouter.use((req, res, next) => {
+    // Skip authentication check for login and register endpoints
+    if (req.path === '/login' || req.path === '/register' || req.path === '/user' || req.path === '/seed') {
+      return next();
+    }
+    requireAuth(req, res, next);
+  });
 
   // Client endpoints
   apiRouter.get("/clients", async (req, res) => {
